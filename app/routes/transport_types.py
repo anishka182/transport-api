@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 from app.database import get_db
 from app.models import TransportType
 from app.schemas import TransportTypeCreate, TransportTypeResponse
@@ -69,3 +70,16 @@ async def delete_transport_type(transport_type_id: int, db: AsyncSession = Depen
     await db.delete(transport_type)
     await db.commit()
     return {"message": "Transport type deleted successfully"}
+
+
+@router.get("/grouped-by-type")
+async def group_by_transport(db: AsyncSession = Depends(get_db)):
+    try:
+        results = await db.execute(
+            select(
+                TransportType.name, func.sum(TransportType.fleet_size).label("total_fleet")
+            ).group_by(TransportType.name)
+        )
+        return results.scalars().all()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
