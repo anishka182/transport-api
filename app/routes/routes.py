@@ -8,7 +8,6 @@ from app.schemas import RouteCreate, RouteResponse
 
 router = APIRouter(prefix="/routes", tags=["Routes"])
 
-
 @router.post("/", response_model=RouteResponse)
 async def create_route(route: RouteCreate, db: AsyncSession = Depends(get_db)):
     new_route = Route(
@@ -22,12 +21,10 @@ async def create_route(route: RouteCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_route)
     return new_route
 
-
 @router.get("/", response_model=list[RouteResponse])
 async def get_all_routes(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Route))
     return result.scalars().all()
-
 
 @router.get("/{route_id}", response_model=RouteResponse)
 async def get_route(route_id: int, db: AsyncSession = Depends(get_db)):
@@ -35,7 +32,6 @@ async def get_route(route_id: int, db: AsyncSession = Depends(get_db)):
     if not route:
         raise HTTPException(status_code=404, detail="Route not found")
     return route
-
 
 @router.put("/{route_id}", response_model=RouteResponse)
 async def update_route(route_id: int, route: RouteCreate, db: AsyncSession = Depends(get_db)):
@@ -52,7 +48,6 @@ async def update_route(route_id: int, route: RouteCreate, db: AsyncSession = Dep
     await db.refresh(db_route)
     return db_route
 
-
 @router.delete("/{route_id}")
 async def delete_route(route_id: int, db: AsyncSession = Depends(get_db)):
     route = await db.get(Route, route_id)
@@ -62,7 +57,6 @@ async def delete_route(route_id: int, db: AsyncSession = Depends(get_db)):
     await db.delete(route)
     await db.commit()
     return {"message": "Route deleted successfully"}
-
 
 @router.get("/filter")
 async def get_filtered_routes(
@@ -81,7 +75,6 @@ async def get_filtered_routes(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/with-transport")
 async def get_routes_with_transport(db: AsyncSession = Depends(get_db)):
     try:
@@ -95,7 +88,6 @@ async def get_routes_with_transport(db: AsyncSession = Depends(get_db)):
         ]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.patch("/update-passengers")
 async def update_passenger_count(distance_threshold: float = 100.0, db: AsyncSession = Depends(get_db)):
@@ -111,18 +103,23 @@ async def update_passenger_count(distance_threshold: float = 100.0, db: AsyncSes
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.get("/sorted")
 async def get_sorted_routes(
     sort_by: str = Query("fare", alias="sortBy"),
     descending: bool = Query(False, alias="desc"),
     db: AsyncSession = Depends(get_db)
 ):
+    valid_sort_fields = ["fare", "route_number", "daily_passenger_count", "num_vehicles_on_route"]
+    
+    if sort_by not in valid_sort_fields:
+        raise HTTPException(status_code=400, detail="Invalid sort field")
+    
+    
+    order = Route.__table__.c[sort_by].desc() if descending else Route.__table__.c[sort_by]
+    
     try:
-        order = Route.__table__.c.get(sort_by).desc() if descending else Route.__table__.c.get(sort_by)
-        result = await db.execute(
-            select(Route).order_by(order)
-        )
-        return result.scalars().all()
+        result = await db.execute(select(Route).order_by(order))
+        routes = result.scalars().all()
+        return routes
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

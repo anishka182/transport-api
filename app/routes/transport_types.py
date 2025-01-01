@@ -8,7 +8,6 @@ from app.schemas import TransportTypeCreate, TransportTypeResponse
 
 router = APIRouter(prefix="/transport-types", tags=["Transport Types"])
 
-
 @router.post("/", response_model=TransportTypeResponse)
 async def create_transport_type(
     transport_type: TransportTypeCreate, db: AsyncSession = Depends(get_db)
@@ -24,12 +23,10 @@ async def create_transport_type(
     await db.refresh(new_transport_type)
     return new_transport_type
 
-
 @router.get("/", response_model=list[TransportTypeResponse])
 async def get_all_transport_types(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(TransportType))
     return result.scalars().all()
-
 
 @router.get("/{transport_type_id}", response_model=TransportTypeResponse)
 async def get_transport_type(
@@ -39,7 +36,6 @@ async def get_transport_type(
     if not transport_type:
         raise HTTPException(status_code=404, detail="Transport type not found")
     return transport_type
-
 
 @router.put("/{transport_type_id}", response_model=TransportTypeResponse)
 async def update_transport_type(
@@ -60,7 +56,6 @@ async def update_transport_type(
     await db.refresh(db_transport_type)
     return db_transport_type
 
-
 @router.delete("/{transport_type_id}")
 async def delete_transport_type(transport_type_id: int, db: AsyncSession = Depends(get_db)):
     transport_type = await db.get(TransportType, transport_type_id)
@@ -71,8 +66,7 @@ async def delete_transport_type(transport_type_id: int, db: AsyncSession = Depen
     await db.commit()
     return {"message": "Transport type deleted successfully"}
 
-
-@router.get("/grouped-by-type")
+@router.get("/grouped-by-type", response_model=list)
 async def group_by_transport(db: AsyncSession = Depends(get_db)):
     try:
         results = await db.execute(
@@ -80,6 +74,7 @@ async def group_by_transport(db: AsyncSession = Depends(get_db)):
                 TransportType.name, func.sum(TransportType.fleet_size).label("total_fleet")
             ).group_by(TransportType.name)
         )
-        return results.scalars().all()
+        
+        return [{"transport_name": row[0], "total_fleet": row[1]} for row in results]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
