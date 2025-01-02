@@ -62,7 +62,7 @@ def fill_database(num_entries=1000):
     
     for _ in range(num_entries):
         route = generate_random_route()
-        route['transport_type_id'] = random.choice([1, 2, 3, 4, 5])  # Используем случайные ID для транспорта
+        route['transport_type_id'] = random.choice([1, 2, 3, 4, 5])  
         add_route(route)
 
     

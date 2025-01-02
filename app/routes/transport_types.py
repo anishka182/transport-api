@@ -8,6 +8,20 @@ from app.schemas import TransportTypeCreate, TransportTypeResponse
 
 router = APIRouter(prefix="/transport-types", tags=["Transport Types"])
 
+
+@router.get("/grouped", response_model=list)
+async def group_by_transport(db: AsyncSession = Depends(get_db)):
+    try:
+        results = await db.execute(
+            select(
+                TransportType.name, func.sum(TransportType.fleet_size).label("total_fleet")
+            ).group_by(TransportType.name)
+        )
+        return [{"transport_name": row[0], "total_fleet": row[1]} for row in results]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/", response_model=TransportTypeResponse)
 async def create_transport_type(
     transport_type: TransportTypeCreate, db: AsyncSession = Depends(get_db)
@@ -66,15 +80,3 @@ async def delete_transport_type(transport_type_id: int, db: AsyncSession = Depen
     await db.commit()
     return {"message": "Transport type deleted successfully"}
 
-@router.get("/grouped-by-type", response_model=list)
-async def group_by_transport(db: AsyncSession = Depends(get_db)):
-    try:
-        results = await db.execute(
-            select(
-                TransportType.name, func.sum(TransportType.fleet_size).label("total_fleet")
-            ).group_by(TransportType.name)
-        )
-        
-        return [{"transport_name": row[0], "total_fleet": row[1]} for row in results]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
