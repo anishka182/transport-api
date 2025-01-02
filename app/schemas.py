@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from sqlalchemy.dialects.postgresql import JSONB
 
 
 class TransportTypeCreate(BaseModel):
@@ -8,6 +9,9 @@ class TransportTypeCreate(BaseModel):
     fuel_consumption: float  
     avg_speed: float 
     is_electric: bool 
+    specifications: Optional[dict[str, str]] = None
+    
+
 
 
 class TransportTypeResponse(TransportTypeCreate):
