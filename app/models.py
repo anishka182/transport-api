@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import JSONB
+
 
 Base = declarative_base()
 
@@ -13,6 +15,7 @@ class TransportType(Base):
     fleet_size = Column(Integer, nullable=False)
     fuel_consumption = Column(Float, nullable=False)
     is_electric = Column(Boolean, nullable=False, default=False)  
+    specifications = Column(JSONB, nullable=True)
 
     routes = relationship("Route", back_populates="transport_type")
 

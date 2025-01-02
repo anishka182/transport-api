@@ -5,6 +5,8 @@ from sqlalchemy import func
 from app.database import get_db
 from app.models import TransportType
 from app.schemas import TransportTypeCreate, TransportTypeResponse
+from sqlalchemy.orm import Session
+
 
 router = APIRouter(prefix="/transport-types", tags=["Transport Types"])
 
@@ -31,6 +33,7 @@ async def create_transport_type(
         avg_speed=transport_type.avg_speed,
         fleet_size=transport_type.fleet_size,
         fuel_consumption=transport_type.fuel_consumption,
+        is_electric=transport_type.is_electric
     )
     db.add(new_transport_type)
     await db.commit()

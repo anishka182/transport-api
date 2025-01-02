@@ -14,6 +14,7 @@ def generate_random_transport_type():
         "fuel_consumption": round(random.uniform(5.0, 100.0), 2),
     }
 
+
 def generate_random_route():
     return {
         "route_number": random.randint(1, 1000),

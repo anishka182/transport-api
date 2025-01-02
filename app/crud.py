@@ -20,6 +20,7 @@ async def create_transport_type(db: AsyncSession, transport_type: TransportTypeC
         avg_speed=transport_type.avg_speed,
         fleet_size=transport_type.fleet_size,
         fuel_consumption=transport_type.fuel_consumption,
+        is_electric=transport_type.is_electric
     )
     db.add(new_transport_type)
     await db.commit()
@@ -38,6 +39,7 @@ async def update_transport_type(
     db_transport_type.avg_speed = transport_type.avg_speed
     db_transport_type.fleet_size = transport_type.fleet_size
     db_transport_type.fuel_consumption = transport_type.fuel_consumption
+    db_transport_type.is_electric=transport_type.is_electric
 
     await db.commit()
     await db.refresh(db_transport_type)

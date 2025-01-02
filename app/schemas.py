@@ -6,7 +6,8 @@ class TransportTypeCreate(BaseModel):
     name: str
     fleet_size: int
     fuel_consumption: float  
-    avg_speed: float  
+    avg_speed: float 
+    is_electric: bool 
 
 
 class TransportTypeResponse(TransportTypeCreate):
