@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Routes</title>
+</head>
+<body>
+  <h1>List of Routes</h1>
+  <ul>
+    {% for route in routes %}
+      <li>Route Number: {{ route.route_number }} | Passengers per day: {{ route.daily_passenger_count }} | Fare: {{ route.fare }} USD | Vehicles: {{ route.num_vehicles_on_route }}</li>
+    {% endfor %}
+  </ul>
+  <div>
+    <p>Page {{ current_page }} of {{ total_pages }}</p>
+  </div>
+  <div>
+    {% if skip > 0 %}
+      <a href="/{{ page_url }}?skip={{ skip - limit if skip - limit >= 0 else 0 }}&limit={{ limit }}">
+        <button>Previous</button>
+      </a>
+    {% endif %}
+
+    {% for page in range(1, total_pages + 1) %}
+      <a href="/{{ page_url }}?skip={{ (page - 1) * limit }}&limit={{ limit }}">
+        <button>{{ page }}</button>
+      </a>
+    {% endfor %}
+
+    {% if skip + limit < total %}
+      <a href="/{{ page_url }}?skip={{ skip + limit }}&limit={{ limit }}">
+        <button>Next</button>
+      </a>
+    {% endif %}
+  </div>
+  <a href="/">Back to Home</a>
+</body>
+</html>

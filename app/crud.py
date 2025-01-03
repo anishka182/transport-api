@@ -1,22 +1,20 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 from app.models import TransportType, Route, Path
 from app.schemas import TransportTypeCreate, RouteCreate, PathCreate
-from sqlalchemy import func
 
 
 async def get_transport_types(db: AsyncSession, skip: int = 0, limit: int = 10):
-    result = await db.execute(select(TransportType).offset(skip).limit(limit))
     total = await db.execute(select(func.count(TransportType.id)))
     total_count = total.scalar()
+    result = await db.execute(select(TransportType).offset(skip).limit(limit))
     items = result.scalars().all()
     return {"total": total_count, "items": items}
 
 
-
 async def get_transport_type_by_id(db: AsyncSession, transport_type_id: int):
     return await db.get(TransportType, transport_type_id)
-
 
 
 async def create_transport_type(db: AsyncSession, transport_type: TransportTypeCreate):
@@ -26,7 +24,7 @@ async def create_transport_type(db: AsyncSession, transport_type: TransportTypeC
         fleet_size=transport_type.fleet_size,
         fuel_consumption=transport_type.fuel_consumption,
         is_electric=transport_type.is_electric,
-        specifications=transport_type.specifications  
+        specifications=transport_type.specifications
     )
     db.add(new_transport_type)
     await db.commit()
@@ -34,10 +32,7 @@ async def create_transport_type(db: AsyncSession, transport_type: TransportTypeC
     return new_transport_type
 
 
-
-async def update_transport_type(
-    db: AsyncSession, transport_type_id: int, transport_type: TransportTypeCreate
-):
+async def update_transport_type(db: AsyncSession, transport_type_id: int, transport_type: TransportTypeCreate):
     db_transport_type = await db.get(TransportType, transport_type_id)
     if not db_transport_type:
         return None
@@ -47,12 +42,11 @@ async def update_transport_type(
     db_transport_type.fleet_size = transport_type.fleet_size
     db_transport_type.fuel_consumption = transport_type.fuel_consumption
     db_transport_type.is_electric = transport_type.is_electric
-    db_transport_type.specifications = transport_type.specifications  
+    db_transport_type.specifications = transport_type.specifications
 
     await db.commit()
     await db.refresh(db_transport_type)
     return db_transport_type
-
 
 
 async def delete_transport_type(db: AsyncSession, transport_type_id: int):
@@ -64,19 +58,16 @@ async def delete_transport_type(db: AsyncSession, transport_type_id: int):
     return False
 
 
-
 async def get_routes(db: AsyncSession, skip: int = 0, limit: int = 10):
-    result = await db.execute(select(Route).offset(skip).limit(limit))
     total = await db.execute(select(func.count(Route.id)))
     total_count = total.scalar()
+    result = await db.execute(select(Route).offset(skip).limit(limit))
     items = result.scalars().all()
     return {"total": total_count, "items": items}
 
 
-
 async def get_route_by_id(db: AsyncSession, route_id: int):
     return await db.get(Route, route_id)
-
 
 
 async def create_route(db: AsyncSession, route: RouteCreate):
@@ -90,7 +81,6 @@ async def create_route(db: AsyncSession, route: RouteCreate):
     await db.commit()
     await db.refresh(new_route)
     return new_route
-
 
 
 async def update_route(db: AsyncSession, route_id: int, route: RouteCreate):
@@ -108,7 +98,6 @@ async def update_route(db: AsyncSession, route_id: int, route: RouteCreate):
     return db_route
 
 
-
 async def delete_route(db: AsyncSession, route_id: int):
     route = await db.get(Route, route_id)
     if route:
@@ -118,19 +107,16 @@ async def delete_route(db: AsyncSession, route_id: int):
     return False
 
 
-
 async def get_paths(db: AsyncSession, skip: int = 0, limit: int = 10):
-    result = await db.execute(select(Path).offset(skip).limit(limit))
     total = await db.execute(select(func.count(Path.id)))
     total_count = total.scalar()
+    result = await db.execute(select(Path).offset(skip).limit(limit))
     items = result.scalars().all()
     return {"total": total_count, "items": items}
 
 
-
 async def get_path_by_id(db: AsyncSession, path_id: int):
     return await db.get(Path, path_id)
-
 
 
 async def create_path(db: AsyncSession, path: PathCreate):
@@ -146,7 +132,6 @@ async def create_path(db: AsyncSession, path: PathCreate):
     return new_path
 
 
-
 async def update_path(db: AsyncSession, path_id: int, path: PathCreate):
     db_path = await db.get(Path, path_id)
     if not db_path:
@@ -160,7 +145,6 @@ async def update_path(db: AsyncSession, path_id: int, path: PathCreate):
     await db.commit()
     await db.refresh(db_path)
     return db_path
-
 
 
 async def delete_path(db: AsyncSession, path_id: int):
