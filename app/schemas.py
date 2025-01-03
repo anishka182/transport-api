@@ -1,17 +1,15 @@
 from pydantic import BaseModel
-from typing import Optional
 from sqlalchemy.dialects.postgresql import JSONB
+from typing import List, Optional
 
 
 class TransportTypeCreate(BaseModel):
     name: str
     fleet_size: int
-    fuel_consumption: float  
-    avg_speed: float 
-    is_electric: bool 
+    fuel_consumption: float
+    avg_speed: float
+    is_electric: bool
     specifications: Optional[dict[str, str]] = None
-    
-
 
 
 class TransportTypeResponse(TransportTypeCreate):
@@ -36,9 +34,9 @@ class RouteResponse(RouteCreate):
 
 
 class PathCreate(BaseModel):
-    starting_point: str  
+    starting_point: str
     end_point: str
-    num_stops: int  
+    num_stops: int
     distance: float
 
 
@@ -50,7 +48,24 @@ class PathResponse(PathCreate):
 
 
 class TransportTypeWithRoutesResponse(TransportTypeResponse):
-    routes: list[RouteResponse] = []
+    routes: List[RouteResponse] = []
 
     class Config:
         orm_mode = True
+
+
+class PaginatedResponse(BaseModel):
+    total: int
+    items: List
+
+
+class PaginatedTransportTypesResponse(PaginatedResponse):
+    items: List[TransportTypeResponse]
+
+
+class PaginatedRoutesResponse(PaginatedResponse):
+    items: List[RouteResponse]
+
+
+class PaginatedPathsResponse(PaginatedResponse):
+    items: List[PathResponse]

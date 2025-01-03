@@ -1,12 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
+from sqlalchemy import func
 from app.database import get_db
 from app.models import Path
-from app.schemas import PathCreate, PathResponse
+from app.schemas import PathCreate, PathResponse, PaginatedPathsResponse
+
 
 router = APIRouter(prefix="/paths", tags=["Paths"])
-
 
 @router.post("/", response_model=PathResponse)
 async def create_path(path: PathCreate, db: AsyncSession = Depends(get_db)):
@@ -21,12 +22,20 @@ async def create_path(path: PathCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_path)
     return new_path
 
-
-@router.get("/", response_model=list[PathResponse])
-async def get_all_paths(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Path))
-    return result.scalars().all()
-
+@router.get("/", response_model=PaginatedPathsResponse)
+async def get_paths(
+    db: AsyncSession = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, le=100)
+):
+    try:
+        result = await db.execute(select(Path).offset(skip).limit(limit))
+        total = await db.execute(select(func.count(Path.id)))
+        total_count = total.scalar()
+        items = result.scalars().all()
+        return {"total": total_count, "items": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @router.get("/{path_id}", response_model=PathResponse)
 async def get_path(path_id: int, db: AsyncSession = Depends(get_db)):
@@ -34,7 +43,6 @@ async def get_path(path_id: int, db: AsyncSession = Depends(get_db)):
     if not path:
         raise HTTPException(status_code=404, detail="Path not found")
     return path
-
 
 @router.put("/{path_id}", response_model=PathResponse)
 async def update_path(path_id: int, path: PathCreate, db: AsyncSession = Depends(get_db)):
@@ -50,7 +58,6 @@ async def update_path(path_id: int, path: PathCreate, db: AsyncSession = Depends
     await db.commit()
     await db.refresh(db_path)
     return db_path
-
 
 @router.delete("/{path_id}")
 async def delete_path(path_id: int, db: AsyncSession = Depends(get_db)):

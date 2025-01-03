@@ -1,16 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import update
-from app.database import get_db
-from app.models import Route, TransportType
-from app.schemas import RouteCreate, RouteResponse
+from sqlalchemy import func, update
 from app.models import Route, TransportType, Path
-
+from app.schemas import RouteCreate, RouteResponse, PaginatedRoutesResponse
+from app.database import get_db
 
 router = APIRouter(prefix="/routes", tags=["Routes"])
-
-
 
 @router.get("/filter")
 async def get_filtered_routes(
@@ -50,18 +46,14 @@ async def get_routes_with_transport(db: AsyncSession = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @router.patch("/update-passengers")
 async def update_passenger_count(distance_threshold: float = 100.0, db: AsyncSession = Depends(get_db)):
     try:
-        
         subquery = (
             select(Path.route_id)
             .where(Path.distance > distance_threshold)
             .distinct()
         )
-
-        
         stmt = (
             update(Route)
             .where(Route.id.in_(subquery))
@@ -72,7 +64,6 @@ async def update_passenger_count(distance_threshold: float = 100.0, db: AsyncSes
         return {"message": "Routes updated successfully."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.get("/sorted")
 async def get_sorted_routes(
@@ -85,7 +76,6 @@ async def get_sorted_routes(
     if sort_by not in valid_sort_fields:
         raise HTTPException(status_code=400, detail="Invalid sort field")
     
-    
     order = Route.__table__.c[sort_by].desc() if descending else Route.__table__.c[sort_by]
     
     try:
@@ -94,8 +84,6 @@ async def get_sorted_routes(
         return routes
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
-
 
 @router.post("/", response_model=RouteResponse)
 async def create_route(route: RouteCreate, db: AsyncSession = Depends(get_db)):
@@ -110,10 +98,20 @@ async def create_route(route: RouteCreate, db: AsyncSession = Depends(get_db)):
     await db.refresh(new_route)
     return new_route
 
-@router.get("/", response_model=list[RouteResponse])
-async def get_all_routes(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Route))
-    return result.scalars().all()
+@router.get("/", response_model=PaginatedRoutesResponse)
+async def get_all_routes(
+    db: AsyncSession = Depends(get_db),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(10, le=100)
+):
+    try:
+        result = await db.execute(select(Route).offset(skip).limit(limit))
+        total = await db.execute(select(func.count(Route.id)))
+        total_count = total.scalar()
+        items = result.scalars().all()
+        return {"total": total_count, "items": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 @router.get("/{route_id}", response_model=RouteResponse)
 async def get_route(route_id: int, db: AsyncSession = Depends(get_db)):

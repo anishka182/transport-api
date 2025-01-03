@@ -1,31 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy import func
+from sqlalchemy import func, String
 from app.database import get_db
 from app.models import TransportType
-from app.schemas import TransportTypeCreate, TransportTypeResponse
-from sqlalchemy.orm import Session
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import String
-
+from app.schemas import TransportTypeCreate, TransportTypeResponse, PaginatedTransportTypesResponse
 
 
 router = APIRouter(prefix="/transport-types", tags=["Transport Types"])
 
-
-
 @router.get("/search", response_model=list[TransportTypeResponse])
 async def search_transport_types(search_term: str = Query(...), db: AsyncSession = Depends(get_db)):
     try:
-        
         results = await db.execute(
             select(TransportType).filter(TransportType.specifications.cast(String).ilike(f"%{search_term}%"))
         )
         return results.scalars().all()
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
 
 @router.get("/grouped", response_model=list)
 async def group_by_transport(db: AsyncSession = Depends(get_db)):
@@ -38,7 +30,6 @@ async def group_by_transport(db: AsyncSession = Depends(get_db)):
         return [{"transport_name": row[0], "total_fleet": row[1]} for row in results]
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 @router.post("/", response_model=TransportTypeResponse)
 async def create_transport_type(
@@ -59,12 +50,18 @@ async def create_transport_type(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
-
-@router.get("/", response_model=list[TransportTypeResponse])
-async def get_all_transport_types(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(TransportType))
-    return result.scalars().all()
-
+@router.get("/", response_model=PaginatedTransportTypesResponse)
+async def get_transport_types(skip: int = 0, limit: int = 10, db: AsyncSession = Depends(get_db)):
+    try:
+        result = await db.execute(
+            select(TransportType).offset(skip).limit(limit)
+        )
+        transport_types = result.scalars().all()
+        total = await db.execute(select(func.count(TransportType.id)))
+        total_count = total.scalar()
+        return {"total": total_count, "items": transport_types}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{transport_type_id}", response_model=TransportTypeResponse)
 async def get_transport_type(
@@ -77,7 +74,6 @@ async def get_transport_type(
         return transport_type
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
 
 @router.put("/{transport_type_id}", response_model=TransportTypeResponse)
 async def update_transport_type(
@@ -113,4 +109,3 @@ async def delete_transport_type(transport_type_id: int, db: AsyncSession = Depen
         return {"message": "Transport type deleted successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
