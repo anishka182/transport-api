@@ -3,32 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <title>Transport System</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Welcome to the Transport System</h1>
+  <header>
+    <h1>Welcome to the Transport System</h1>
+  </header>
 
-  <h2>Transport Types</h2>
-  <ul>
-    {% for transport in transport_types %}
-      <li>{{ transport.name }} (Speed: {{ transport.avg_speed }} km/h, Fleet size: {{ transport.fleet_size }}, Fuel consumption: {{ transport.fuel_consumption }} L/100km)</li>
-    {% endfor %}
-  </ul>
-  <a href="/transport-types/?skip=0&limit=5">View all transport types</a>
+  <section>
+    <h2>Transport Types</h2>
+    <ul>
+      {% for transport in transport_types %}
+        <li>
+          <strong>{{ transport.name }}</strong> 
+          (Speed: {{ transport.avg_speed }} km/h, Fleet size: {{ transport.fleet_size }}, Fuel consumption: {{ transport.fuel_consumption }} L/100km)
+        </li>
+      {% endfor %}
+    </ul>
+    <a href="/transport-types/?skip=0&limit=5" class="btn">View all transport types</a>
+  </section>
 
-  <h2>Routes</h2>
-  <ul>
-    {% for route in routes %}
-      <li>Route {{ route.route_number }} (Passengers: {{ route.daily_passenger_count }}, Fare: {{ route.fare }} USD, Vehicles: {{ route.num_vehicles_on_route }})</li>
-    {% endfor %}
-  </ul>
-  <a href="/routes/?skip=0&limit=5">View all routes</a>
+  <section>
+    <h2>Routes</h2>
+    <ul>
+      {% for route in routes %}
+        <li>
+          Route {{ route.route_number }} (Passengers: {{ route.daily_passenger_count }}, Fare: {{ route.fare }} USD, Vehicles: {{ route.num_vehicles_on_route }})
+        </li>
+      {% endfor %}
+    </ul>
+    <a href="/routes/?skip=0&limit=5" class="btn">View all routes</a>
+  </section>
 
-  <h2>Paths</h2>
-  <ul>
-    {% for path in paths %}
-      <li>From {{ path.starting_point }} to {{ path.end_point }} (Stops: {{ path.num_stops }}, Distance: {{ path.distance }} km)</li>
-    {% endfor %}
-  </ul>
-  <a href="/paths/?skip=0&limit=5">View all paths</a>
+  <section>
+    <h2>Paths</h2>
+    <ul>
+      {% for path in paths %}
+        <li>
+          From {{ path.starting_point }} to {{ path.end_point }} (Stops: {{ path.num_stops }}, Distance: {{ path.distance }} km)
+        </li>
+      {% endfor %}
+    </ul>
+    <a href="/paths/?skip=0&limit=5" class="btn">View all paths</a>
+  </section>
 </body>
 </html>

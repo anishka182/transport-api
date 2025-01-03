@@ -2,49 +2,50 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Transport System</title>
+  <title>Transport Types</title>
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Welcome to the Transport System</h1>
+  <header>
+    <h1>Transport Types</h1>
+  </header>
 
-  <h2>Transport Types</h2>
-  <ul>
-    {% for transport in transport_types %}
-      <li>
-        {{ transport.name }} (Speed: {{ transport.avg_speed }} km/h, Fleet size: {{ transport.fleet_size }}, Fuel consumption: {{ transport.fuel_consumption }} L/100km) 
-        <br>Specifications: 
-        <ul>
-          {% for key, value in transport.specifications.items() %}
-            <li>{{ key }}: {{ value }}</li>
-          {% endfor %}
-        </ul>
-      </li>
-    {% endfor %}
-  </ul>
+  <section>
+    <ul>
+      {% for transport in transport_types %}
+        <li>
+          <strong>{{ transport.name }}</strong> 
+          (Speed: {{ transport.avg_speed }} km/h, Fleet size: {{ transport.fleet_size }}, Fuel consumption: {{ transport.fuel_consumption }} L/100km) 
+          <br>Specifications: 
+          <ul>
+            {% for key, value in transport.specifications.items() %}
+              <li>{{ key }}: {{ value }}</li>
+            {% endfor %}
+          </ul>
+        </li>
+      {% endfor %}
+    </ul>
 
-  <div>
-    <p>Page {{ current_page }} of {{ total_pages }}</p>
-  </div>
-  <div>
-    {% if skip > 0 %}
-      <a href="/{{ page_url }}?skip={{ skip - limit if skip - limit >= 0 else 0 }}&limit={{ limit }}">
-        <button>Previous</button>
-      </a>
-    {% endif %}
+    <div class="pagination">
+      <p>Page {{ current_page }} of {{ total_pages }}</p>
+      <div>
+        {% if skip > 0 %}
+          <a href="/{{ page_url }}?skip={{ skip - limit if skip - limit >= 0 else 0 }}&limit={{ limit }}" class="btn">Previous</a>
+        {% endif %}
 
-    {% for page in range(1, total_pages + 1) %}
-      <a href="/{{ page_url }}?skip={{ (page - 1) * limit }}&limit={{ limit }}">
-        <button>{{ page }}</button>
-      </a>
-    {% endfor %}
+        {% for page in range(1, total_pages + 1) %}
+          <a href="/{{ page_url }}?skip={{ (page - 1) * limit }}&limit={{ limit }}" class="btn">{{ page }}</a>
+        {% endfor %}
 
-    {% if skip + limit < total %}
-      <a href="/{{ page_url }}?skip={{ skip + limit }}&limit={{ limit }}">
-        <button>Next</button>
-      </a>
-    {% endif %}
-  </div>
+        {% if skip + limit < total %}
+          <a href="/{{ page_url }}?skip={{ skip + limit }}&limit={{ limit }}" class="btn">Next</a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
 
-  <a href="/">Back to Home</a>
+  <footer>
+    <a href="/">Back to Home</a>
+  </footer>
 </body>
 </html>
